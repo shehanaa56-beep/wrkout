@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import MobileNav from './components/layout/MobileNav';
+import BottomNav from './components/layout/BottomNav';
 import { ToastProvider } from './hooks/useToast';
 import { getClients } from './utils/storage';
 import { isLoggedIn, logout } from './pages/Login';
@@ -36,17 +37,15 @@ const Layout = ({ children, onLogout }) => {
         ]
       };
     }
-
     const titles = {
       '/dashboard': 'Dashboard',
-      '/clients': 'Clients',
-      '/sessions': 'Sessions',
-      '/payments': 'Payments',
-      '/activity': 'Activity',
-      '/reports': 'Reports',
-      '/settings': 'Settings'
+      '/clients':   'Clients',
+      '/sessions':  'Sessions',
+      '/payments':  'Payments',
+      '/activity':  'Activity',
+      '/reports':   'Reports',
+      '/settings':  'Settings'
     };
-
     return { title: titles[path] || 'Dashboard' };
   };
 
@@ -60,7 +59,11 @@ const Layout = ({ children, onLogout }) => {
       </div>
 
       {/* Mobile Drawer */}
-      <MobileNav isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} onLogout={onLogout} />
+      <MobileNav
+        isOpen={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        onLogout={onLogout}
+      />
 
       {/* Main Content */}
       <div className="main-content-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -73,6 +76,9 @@ const Layout = ({ children, onLogout }) => {
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Tab Bar */}
+      <BottomNav onMoreClick={() => setMobileNavOpen(true)} />
     </div>
   );
 };
@@ -80,14 +86,8 @@ const Layout = ({ children, onLogout }) => {
 export const App = () => {
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
 
-  const handleLoginSuccess = () => {
-    setAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    logout();
-    setAuthenticated(false);
-  };
+  const handleLoginSuccess = () => setAuthenticated(true);
+  const handleLogout = () => { logout(); setAuthenticated(false); };
 
   if (!authenticated) {
     return (
@@ -102,16 +102,16 @@ export const App = () => {
       <BrowserRouter>
         <Layout onLogout={handleLogout}>
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/clients" element={<Clients />} />
+            <Route path="/"           element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard"  element={<Dashboard />} />
+            <Route path="/clients"    element={<Clients />} />
             <Route path="/clients/:id" element={<ClientDetails />} />
-            <Route path="/sessions" element={<Sessions />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/activity" element={<Activity />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings onLogout={handleLogout} />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/sessions"   element={<Sessions />} />
+            <Route path="/payments"   element={<Payments />} />
+            <Route path="/activity"   element={<Activity />} />
+            <Route path="/reports"    element={<Reports />} />
+            <Route path="/settings"   element={<Settings onLogout={handleLogout} />} />
+            <Route path="*"           element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>
       </BrowserRouter>

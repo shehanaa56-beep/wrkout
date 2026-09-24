@@ -105,9 +105,10 @@ export const Clients = () => {
       {/* 2-Column Responsive Client Card Grid */}
       {filteredClients.length > 0 ? (
         <div
+          className="clients-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
             gap: '18px'
           }}
         >

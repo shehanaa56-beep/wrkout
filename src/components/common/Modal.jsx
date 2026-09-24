@@ -50,10 +50,15 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = '560px' }) 
             from { opacity: 0; transform: scale(0.96) translateY(10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
           }
+          @keyframes slideUpSheet {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
         `}
       </style>
 
       <div
+        className="modal-content"
         style={{
           backgroundColor: '#11171B',
           border: '1px solid rgba(255, 255, 255, 0.1)',

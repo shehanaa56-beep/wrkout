@@ -67,6 +67,7 @@ export const Dashboard = () => {
 
       {/* 4 Statistics Cards */}
       <div
+        className="stat-cards-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -118,13 +119,14 @@ export const Dashboard = () => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: '22px'
         }}
       >
         <UpcomingSessions sessions={upcomingSessions} clients={clients} />
         <MonthlyOverview data={chartData} />
       </div>
+
 
       {/* Add Client Modal */}
       <ClientForm
