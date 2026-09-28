@@ -148,10 +148,27 @@ export const Header = ({ onOpenMobile, title, breadcrumbs }) => {
           )}
         </div>
 
-        {/* Avatar — initials based */}
+        {/* Avatar — photo or initials based */}
         {(() => {
           const name = settings.trainerName || 'Coach Arjun';
           const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+          if (settings.avatar) {
+            return (
+              <img
+                src={settings.avatar}
+                alt={name}
+                onClick={() => navigate('/settings')}
+                title={name}
+                style={{
+                  width: '36px', height: '36px',
+                  borderRadius: '8px',
+                  objectFit: 'cover',
+                  border: '1.5px solid rgba(101,243,107,0.4)',
+                  cursor: 'pointer', flexShrink: 0
+                }}
+              />
+            );
+          }
           return (
             <div
               onClick={() => navigate('/settings')}

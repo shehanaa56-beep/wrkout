@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { User, FileDown, FileText, Lock, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { User, FileDown, FileText, Lock, Eye, EyeOff, Camera, Upload } from 'lucide-react';
 import Button from '../components/common/Button';
 import { getSettings, saveSettings } from '../utils/storage';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -7,10 +7,13 @@ import { STORAGE_KEYS } from '../utils/seedData';
 import { generateFitCoachPDF } from '../utils/pdfGenerator';
 import { changePassword } from './Login';
 import { useToast } from '../hooks/useToast';
+import { compressImageToBase64 } from '../utils/imageUtils';
 
 export const Settings = ({ onLogout }) => {
   const { showToast } = useToast();
   const [profile, setProfile] = useState(getSettings());
+  const avatarInputRef = useRef(null);
+  const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
 
   const [clients] = useLocalStorage(STORAGE_KEYS.CLIENTS, []);
   const [sessions] = useLocalStorage(STORAGE_KEYS.SESSIONS, []);
@@ -24,6 +27,31 @@ export const Settings = ({ onLogout }) => {
   const [pwError, setPwError] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsProcessingAvatar(true);
+      const base64 = await compressImageToBase64(file, 320, 320, 0.75);
+      const updated = { ...profile, avatar: base64 };
+      setProfile(updated);
+      saveSettings(updated);
+      showToast('✓ Profile picture updated!', 'success');
+    } catch (err) {
+      showToast(err.message || 'Failed to process image', 'error');
+    } finally {
+      setIsProcessingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    const updated = { ...profile, avatar: '' };
+    setProfile(updated);
+    saveSettings(updated);
+    showToast('Profile picture removed (reverted to initials)', 'info');
+  };
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -145,6 +173,116 @@ export const Settings = ({ onLogout }) => {
         </div>
 
         <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Trainer Profile Picture */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '18px',
+              padding: '14px 16px',
+              backgroundColor: '#0E1418',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.06)'
+            }}
+          >
+            <div style={{ position: 'relative', width: '64px', height: '64px', flexShrink: 0 }}>
+              {profile.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt={profile.trainerName || 'Trainer'}
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid #65F36B'
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(101, 243, 107, 0.15)',
+                    border: '2px solid rgba(101, 243, 107, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#65F36B',
+                    fontSize: '20px',
+                    fontWeight: 800
+                  }}
+                >
+                  {(profile.trainerName || 'Coach Arjun')
+                    .split(' ')
+                    .map((w) => w[0])
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF' }}>
+                Profile Picture
+              </div>
+              <div style={{ fontSize: '11px', color: '#8B949E' }}>
+                Display picture shown in the header, sidebar, and export summaries
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isProcessingAvatar}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: 'rgba(101, 243, 107, 0.15)',
+                    color: '#65F36B',
+                    border: '1px solid rgba(101, 243, 107, 0.3)',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: isProcessingAvatar ? 'wait' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Upload size={13} />
+                  {isProcessingAvatar ? 'Compressing...' : (profile.avatar ? 'Change Picture' : 'Upload Picture')}
+                </button>
+
+                {profile.avatar && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: 'rgba(255, 92, 92, 0.1)',
+                      color: '#FF5C5C',
+                      border: '1px solid rgba(255, 92, 92, 0.25)',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={labelStyle}>Full Name</label>

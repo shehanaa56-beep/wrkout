@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Phone,
@@ -12,7 +12,8 @@ import {
   CreditCard,
   CheckCircle2,
   Activity as ActivityIcon,
-  Scale
+  Scale,
+  Camera
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -41,8 +42,10 @@ import {
 import {
   deleteClient,
   addProgress,
-  getProgress
+  getProgress,
+  updateClient
 } from '../../utils/storage';
+import { compressImageToBase64 } from '../../utils/imageUtils';
 import { useToast } from '../../hooks/useToast';
 
 export const ClientDetails = ({
@@ -62,6 +65,21 @@ export const ClientDetails = ({
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
   const [isLogProgressOpen, setIsLogProgressOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const avatarInputRef = useRef(null);
+
+  const handleDirectAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const base64 = await compressImageToBase64(file, 320, 320, 0.75);
+      updateClient({ ...client, avatar: base64 });
+      showToast('✓ Client photo updated!', 'success');
+    } catch (err) {
+      showToast(err.message || 'Failed to update photo', 'error');
+    } finally {
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
 
   // New Progress State
   const [newProgress, setNewProgress] = useState({
@@ -141,17 +159,49 @@ export const ClientDetails = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-          <img
-            src={client.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(client.name)}`}
-            alt={client.name}
-            style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              border: '2px solid rgba(101, 243, 107, 0.4)'
-            }}
-          />
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <img
+              src={client.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(client.name)}`}
+              alt={client.name}
+              style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid rgba(101, 243, 107, 0.4)'
+              }}
+            />
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleDirectAvatarUpload}
+            />
+            <button
+              type="button"
+              title="Change client photo"
+              onClick={() => avatarInputRef.current?.click()}
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: '#11171B',
+                border: '1.5px solid #65F36B',
+                color: '#65F36B',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.5)'
+              }}
+            >
+              <Camera size={14} />
+            </button>
+          </div>
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>

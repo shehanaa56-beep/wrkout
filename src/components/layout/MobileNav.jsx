@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Calendar, CreditCard,
   Activity, BarChart3, Settings, LogOut, Dumbbell, X
@@ -17,7 +17,6 @@ const navItems = [
 ];
 
 export const MobileNav = ({ isOpen, onClose, onLogout }) => {
-  const navigate = useNavigate();
   const settings = getSettings();
 
   const handleLogout = () => { onClose(); if (onLogout) onLogout(); };
@@ -111,6 +110,20 @@ export const MobileNav = ({ isOpen, onClose, onLogout }) => {
             {(() => {
               const name = settings.trainerName || 'Coach Arjun';
               const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+              if (settings.avatar) {
+                return (
+                  <img
+                    src={settings.avatar}
+                    alt={name}
+                    style={{
+                      width: '42px', height: '42px', borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid rgba(101,243,107,0.4)',
+                      flexShrink: 0
+                    }}
+                  />
+                );
+              }
               return (
                 <div style={{
                   width: '42px', height: '42px', borderRadius: '50%',

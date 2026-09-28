@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import { addClient, updateClient } from '../../utils/storage';
 import { useToast } from '../../hooks/useToast';
+import { Camera, Upload } from 'lucide-react';
+import { compressImageToBase64 } from '../../utils/imageUtils';
 
 export const ClientForm = ({ isOpen, onClose, clientToEdit = null, onSuccess }) => {
   const { showToast } = useToast();
   const isEditing = Boolean(clientToEdit);
+  const fileInputRef = useRef(null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   const initialFormState = {
+    avatar: '',
     name: '',
     phone: '',
     email: '',
@@ -38,6 +43,27 @@ export const ClientForm = ({ isOpen, onClose, clientToEdit = null, onSuccess }) 
   };
 
   const [formData, setFormData] = useState(initialFormState);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsProcessingImage(true);
+      const base64 = await compressImageToBase64(file, 320, 320, 0.75);
+      setFormData((prev) => ({ ...prev, avatar: base64 }));
+      showToast('✓ Photo uploaded and compressed', 'success');
+    } catch (err) {
+      showToast(err.message || 'Failed to process image', 'error');
+    } finally {
+      setIsProcessingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, avatar: '' }));
+  };
 
   useEffect(() => {
     if (clientToEdit) {
@@ -152,6 +178,111 @@ export const ClientForm = ({ isOpen, onClose, clientToEdit = null, onSuccess }) 
         {/* SECTION 1: Personal Information */}
         <div>
           <div style={sectionHeaderStyle}>Personal Information</div>
+
+          {/* Client Photo Upload */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '12px 16px',
+              backgroundColor: '#0E1418',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              marginBottom: '16px'
+            }}
+          >
+            <div style={{ position: 'relative', width: '64px', height: '64px', flexShrink: 0 }}>
+              {formData.avatar ? (
+                <img
+                  src={formData.avatar}
+                  alt="Client Preview"
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid #65F36B'
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(101, 243, 107, 0.1)',
+                    border: '2px dashed rgba(101, 243, 107, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#65F36B'
+                  }}
+                >
+                  <Camera size={24} />
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF' }}>
+                Client Photo
+              </div>
+              <div style={{ fontSize: '11px', color: '#8B949E' }}>
+                Upload JPG, PNG or WebP (auto-compressed to ~25KB base64 for storage)
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isProcessingImage}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: 'rgba(101, 243, 107, 0.15)',
+                    color: '#65F36B',
+                    border: '1px solid rgba(101, 243, 107, 0.3)',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: isProcessingImage ? 'wait' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Upload size={13} />
+                  {isProcessingImage ? 'Compressing...' : (formData.avatar ? 'Change Photo' : 'Upload Photo')}
+                </button>
+
+                {formData.avatar && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: 'rgba(255, 92, 92, 0.1)',
+                      color: '#FF5C5C',
+                      border: '1px solid rgba(255, 92, 92, 0.25)',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
             <div style={inputGroupStyle}>
               <label style={labelStyle}>Full Name *</label>

@@ -48,12 +48,16 @@ export const saveClients = (clients) => setStoredItem(STORAGE_KEYS.CLIENTS, clie
 
 export const addClient = (clientData) => {
   const clients = getClients();
+  const avatarUrl = clientData.avatar && clientData.avatar.trim() !== ''
+    ? clientData.avatar
+    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(clientData.name || 'client')}`;
+
   const newClient = {
     id: `client_${Date.now()}`,
     startDate: new Date().toISOString().split('T')[0],
     status: 'Active',
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(clientData.name)}`,
-    ...clientData
+    ...clientData,
+    avatar: avatarUrl
   };
   const updated = [newClient, ...clients];
   saveClients(updated);

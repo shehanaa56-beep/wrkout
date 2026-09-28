@@ -91,10 +91,24 @@ export const Sidebar = ({ onCloseMobile, onLogout }) => {
       {/* Profile & Logout */}
       <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', backgroundColor: '#090D0F' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-          {/* Initials avatar */}
+          {/* Photo or Initials avatar */}
           {(() => {
             const name = settings.trainerName || 'Coach Arjun';
             const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+            if (settings.avatar) {
+              return (
+                <img
+                  src={settings.avatar}
+                  alt={name}
+                  style={{
+                    width: '40px', height: '40px', borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid rgba(101,243,107,0.4)',
+                    flexShrink: 0
+                  }}
+                />
+              );
+            }
             return (
               <div style={{
                 width: '40px', height: '40px', borderRadius: '50%',

@@ -4,6 +4,22 @@ import Button from '../common/Button';
 import { addSession, updateSession } from '../../utils/storage';
 import { useToast } from '../../hooks/useToast';
 
+const SESSION_TYPES = [
+  'Cardio',
+  'Mobility and Recovery',
+  'Chest',
+  'Back',
+  'Shoulder',
+  'Leg',
+  'Abs',
+  'Biceps',
+  'Triceps',
+  'Chest and Triceps',
+  'Back and Biceps',
+  'Shoulder and Abs',
+  'Leg and Abs'
+];
+
 export const SessionForm = ({
   isOpen,
   onClose,
@@ -25,7 +41,9 @@ export const SessionForm = ({
     date: new Date().toISOString().split('T')[0],
     startTime: '10:00',
     endTime: '11:00',
-    type: defaultClient ? defaultClient.trainingType : 'Strength Training',
+    type: defaultClient && SESSION_TYPES.includes(defaultClient.trainingType)
+      ? defaultClient.trainingType
+      : SESSION_TYPES[0],
     duration: 60,
     status: 'Scheduled',
     fee: defaultClient ? defaultClient.sessionFee || 500 : 500,
@@ -37,21 +55,33 @@ export const SessionForm = ({
 
   useEffect(() => {
     if (sessionToEdit) {
-      setFormData(sessionToEdit);
+      let currentType = sessionToEdit.type;
+      if (currentType === 'Mobility & Recovery') currentType = 'Mobility and Recovery';
+      else if (currentType === 'Cardio Session') currentType = 'Cardio';
+      else if (!SESSION_TYPES.includes(currentType)) {
+        currentType = SESSION_TYPES[0];
+      }
+      setFormData({
+        ...sessionToEdit,
+        type: currentType
+      });
     } else if (defaultClientId) {
       const matched = clients.find((c) => c.id === defaultClientId);
       setFormData({
         ...initialFormState,
         clientId: defaultClientId,
         clientName: matched ? matched.name : '',
-        type: matched ? matched.trainingType : 'Strength Training',
+        type: matched && SESSION_TYPES.includes(matched.trainingType)
+          ? matched.trainingType
+          : SESSION_TYPES[0],
         fee: matched ? matched.sessionFee || 500 : 500
       });
     } else if (clients.length > 0) {
       setFormData({
         ...initialFormState,
         clientId: clients[0].id,
-        clientName: clients[0].name
+        clientName: clients[0].name,
+        type: SESSION_TYPES[0]
       });
     }
   }, [sessionToEdit, defaultClientId, clients, isOpen]);
@@ -63,7 +93,9 @@ export const SessionForm = ({
       ...prev,
       clientId: selectedId,
       clientName: client ? client.name : '',
-      type: client?.trainingType || prev.type,
+      type: (client?.trainingType && SESSION_TYPES.includes(client.trainingType))
+        ? client.trainingType
+        : (SESSION_TYPES.includes(prev.type) ? prev.type : SESSION_TYPES[0]),
       fee: client?.sessionFee || prev.fee
     }));
   };
@@ -147,14 +179,11 @@ export const SessionForm = ({
           <div style={inputGroupStyle}>
             <label style={labelStyle}>Session Type</label>
             <select name="type" value={formData.type} onChange={handleChange}>
-              <option value="Strength Training">Strength Training</option>
-              <option value="Personal Training">Personal Training</option>
-              <option value="Cardio">Cardio</option>
-              <option value="Cardio Session">Cardio Session</option>
-              <option value="HIIT">HIIT</option>
-              <option value="Muscle Gain">Muscle Gain</option>
-              <option value="Functional Training">Functional Training</option>
-              <option value="Mobility & Recovery">Mobility & Recovery</option>
+              {SESSION_TYPES.map((typeOption) => (
+                <option key={typeOption} value={typeOption}>
+                  {typeOption}
+                </option>
+              ))}
             </select>
           </div>
         </div>
