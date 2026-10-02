@@ -6,7 +6,12 @@ import { useToast } from '../../hooks/useToast';
 
 const SESSION_TYPES = [
   'Cardio',
+  'HIT',
+  'Mobility',
   'Mobility and Recovery',
+  'Full Body',
+  'Upper Body',
+  'Lower Body',
   'Chest',
   'Back',
   'Shoulder',
@@ -14,10 +19,13 @@ const SESSION_TYPES = [
   'Abs',
   'Biceps',
   'Triceps',
+  'Arms',
   'Chest and Triceps',
   'Back and Biceps',
   'Shoulder and Abs',
-  'Leg and Abs'
+  'Leg and Abs',
+  'Arms and Abs',
+  'Landmine Workout'
 ];
 
 export const SessionForm = ({
@@ -58,6 +66,9 @@ export const SessionForm = ({
       let currentType = sessionToEdit.type;
       if (currentType === 'Mobility & Recovery') currentType = 'Mobility and Recovery';
       else if (currentType === 'Cardio Session') currentType = 'Cardio';
+      else if (currentType === 'HIIT') currentType = 'HIT';
+      else if (currentType === "am's" || currentType === "Am's") currentType = 'Arms';
+      else if (currentType === "am's and ab's" || currentType === "Am's and Ab's") currentType = 'Arms and Abs';
       else if (!SESSION_TYPES.includes(currentType)) {
         currentType = SESSION_TYPES[0];
       }
